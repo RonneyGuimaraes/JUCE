@@ -1466,7 +1466,15 @@ public:
                               : outputDeviceNames;
     }
 
-    int getDefaultDeviceIndex (bool /*forInput*/) const
+	StringArray getDeviceIDs(bool wantInputIds) const
+	{
+		jassert(hasScanned); // need to call scanForDevices() before doing this
+
+		return wantInputIds ? inputDeviceIds
+			: outputDeviceIds;
+	}
+
+	int getDefaultDeviceIndex (bool /*forInput*/) const
     {
         jassert (hasScanned); // need to call scanForDevices() before doing this
         return 0;
@@ -1511,7 +1519,34 @@ public:
         return device.release();
     }
 
-    //==============================================================================
+	AudioIODevice* createDeviceWithID(const String& outputDeviceID,
+		const String& inputDeviceID) override
+	{
+		jassert(hasScanned); // need to call scanForDevices() before doing this
+
+		std::unique_ptr<WASAPIAudioIODevice> device;
+
+		auto outputIndex = outputDeviceIds.indexOf(outputDeviceID);
+		auto inputIndex = inputDeviceIds.indexOf(inputDeviceID);
+
+		if (outputIndex >= 0 || inputIndex >= 0)
+		{
+			String deviceName = (outputIndex >= 0 ? outputDeviceNames[outputIndex] : inputDeviceNames[inputIndex]);
+
+			device.reset(new WASAPIAudioIODevice(deviceName,
+				getTypeName(),
+				outputDeviceIds[outputIndex],
+				inputDeviceIds[inputIndex],
+				exclusiveMode));
+
+			if (!device->initialise())
+				device = nullptr;
+		}
+
+		return device.release();
+	}
+
+	//==============================================================================
     StringArray outputDeviceNames, outputDeviceIds;
     StringArray inputDeviceNames, inputDeviceIds;
 

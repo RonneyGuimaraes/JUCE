@@ -86,7 +86,17 @@ public:
     */
     virtual StringArray getDeviceNames (bool wantInputNames = false) const = 0;
 
-    /** Returns the name of the default device.
+	/** Returns the IDs of available devices of this type.
+
+		The scanForDevices() method must have been called to create this list.
+
+		@param wantInputIDs       only really used by DirectSound where devices are split up
+								  into inputs and outputs, this indicates whether to use
+								  the input or output name to refer to a pair of devices.
+	*/
+	virtual StringArray getDeviceIDs(bool wantInputIDs = false) const { jassertfalse; return {}; }
+
+	/** Returns the name of the default device.
 
         This will be one of the names from the getDeviceNames() list.
 
@@ -113,7 +123,18 @@ public:
     virtual AudioIODevice* createDevice (const String& outputDeviceName,
                                          const String& inputDeviceName) = 0;
 
-    //==============================================================================
+	/** Creates one of the devices of this type.
+
+		The deviceID must be one of the strings returned by getDeviceIDs(), and
+		scanForDevices() must have been called before this method is used.
+	*/
+	virtual AudioIODevice* createDeviceWithID(const String& outputDeviceID,
+		const String& inputDeviceID) {
+		jassertfalse;
+		return nullptr;
+	}
+
+	//==============================================================================
     /**
         A class for receiving events when audio devices are inserted or removed.
 
